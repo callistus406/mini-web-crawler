@@ -3,9 +3,11 @@ const { JSDOM } = require('jsdom');
 const normalizeURL = (input) => {
   const urlObj = new URL(input);
 
-  const url = `${urlObj.host}${urlObj.pathname}`;
+  let url = `${urlObj.host}${urlObj.pathname}`;
 
-  if (url.length > 0 && url.slice(-1) === '/') return url.slice(0, -1);
+  if (url.length > 0 && url.slice(-1) === '/') {
+    url = url.slice(0, -1);
+  }
   return url;
 };
 
@@ -22,6 +24,7 @@ const fetchUrlFromHtmlBody = (html, baseURL) => {
   for (const anchorTag of anchorTags) {
     if (anchorTag.href.slice(0, 1) === '/') {
       try {
+        console.log(urls.push(new URL(anchorTag.href, baseURL).href));
         urls.push(new URL(anchorTag.href, baseURL).href);
       } catch (error) {
         console.log(error.message);
@@ -38,49 +41,60 @@ const fetchUrlFromHtmlBody = (html, baseURL) => {
   return urls;
 };
 
-console.log(
-  fetchUrlFromHtmlBody(
-    `
-<html>
-<body>
-<a href="http://capacitybay.org">
-home
-</a>
-<a href="http://capacitybay.org/about">
-about
-</a>
-<a href="/contact">
-contact
-</a>
-</body>
-</html>
-`,
-    'http://capacitybay.org'
-  )
-);
-
 const crawlPage = async (baseURL, currentURL, pages) => {
-  console.log(`crawling: ${currentURL}`);
-
   const baseURLObj = new URL(baseURL);
   const currentURLObj = new URL(baseURL);
 
+  //   check if link is off site link
+  //   console.log('currentURLObj.hostname, baseURLObj.hostname');
+  console.log('----------------------');
+  if (currentURLObj.hostname !== baseURLObj.hostname) {
+    console.log('true');
+    return pages;
+  }
+
+  // normalize url
+
+  const normalizedURL = normalizeURL(currentURL);
+  console.log(normalizedURL, currentURL);
+  // don't recount already counted links
+
+  if (pages[normalizedURL] > 0) {
+    pages[normalizedURL]++;
+    return pages;
+  }
+
+  // set initial count to 1 // first time of crawling
+
+  pages[normalizedURL] = 1;
+  console.log(`crawling: ${currentURL}`);
+  let htmlBody = '';
+
   try {
     const response = await fetch(currentURL);
-
+    if (response.status > 399) {
+      console.log(`Got http error: status code: ${response.status}`);
+      return pages;
+    }
     const contentType = response.headers.get('content-type');
     if (!contentType.includes('text/html')) {
       console.log('non-html response:' + contentType);
-      return;
+      return pages;
     }
 
-    const result = await response.text();
+    htmlBody = await response.text();
   } catch (error) {
-    console.log(error.message);
+    console.log(`error : ${error}`);
   }
 
-  console.log(anchorTags);
+  const nextUrls = fetchUrlFromHtmlBody(htmlBody, baseURL);
+  //   console.log('----------------------------');
+  //   console.log(nextUrls);
+  for (const nextUrl of nextUrls) {
+    pages = await crawlPage(baseURL, nextUrl, pages);
+  }
+
+  return pages;
 };
 
-module.exports = { normalizeURL, fetchUrlFromHtmlBody };
-crawlPage('http://blog.boot.dev');
+module.exports = { normalizeURL, fetchUrlFromHtmlBody, crawlPage };
