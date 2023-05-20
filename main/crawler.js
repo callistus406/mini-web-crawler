@@ -1,11 +1,11 @@
-const { JSDOM } = require('jsdom');
+const { JSDOM } = require("jsdom");
 
 const normalizeURL = (input) => {
   const urlObj = new URL(input);
 
   let url = `${urlObj.host}${urlObj.pathname}`;
 
-  if (url.length > 0 && url.slice(-1) === '/') {
+  if (url.length > 0 && url.slice(-1) === "/") {
     url = url.slice(0, -1);
   }
   return url;
@@ -19,10 +19,10 @@ const fetchUrlFromHtmlBody = (html, baseURL) => {
 
   const dom = new JSDOM(html);
   // get all anchor tags
-  const anchorTags = dom.window.document.querySelectorAll('a');
+  const anchorTags = dom.window.document.querySelectorAll("a");
 
   for (const anchorTag of anchorTags) {
-    if (anchorTag.href.slice(0, 1) === '/') {
+    if (anchorTag.href.slice(0, 1) === "/") {
       try {
         console.log(urls.push(new URL(anchorTag.href, baseURL).href));
         urls.push(new URL(anchorTag.href, baseURL).href);
@@ -43,20 +43,19 @@ const fetchUrlFromHtmlBody = (html, baseURL) => {
 
 const crawlPage = async (baseURL, currentURL, pages) => {
   const baseURLObj = new URL(baseURL);
-  const currentURLObj = new URL(baseURL);
+  const currentURLObj = new URL(currentURL);
 
   //   check if link is off site link
   //   console.log('currentURLObj.hostname, baseURLObj.hostname');
-  console.log('----------------------');
+
   if (currentURLObj.hostname !== baseURLObj.hostname) {
-    console.log('true');
     return pages;
   }
 
   // normalize url
 
   const normalizedURL = normalizeURL(currentURL);
-  console.log(normalizedURL, currentURL);
+  // console.log(normalizedURL, currentURL);
   // don't recount already counted links
 
   if (pages[normalizedURL] > 0) {
@@ -68,7 +67,7 @@ const crawlPage = async (baseURL, currentURL, pages) => {
 
   pages[normalizedURL] = 1;
   console.log(`crawling: ${currentURL}`);
-  let htmlBody = '';
+  let htmlBody = "";
 
   try {
     const response = await fetch(currentURL);
@@ -76,9 +75,9 @@ const crawlPage = async (baseURL, currentURL, pages) => {
       console.log(`Got http error: status code: ${response.status}`);
       return pages;
     }
-    const contentType = response.headers.get('content-type');
-    if (!contentType.includes('text/html')) {
-      console.log('non-html response:' + contentType);
+    const contentType = response.headers.get("content-type");
+    if (!contentType.includes("text/html")) {
+      console.log("non-html response:" + contentType);
       return pages;
     }
 
