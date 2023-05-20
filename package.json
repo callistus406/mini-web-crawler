@@ -1,0 +1,19 @@
+{
+  "name": "web-crawler",
+  "version": "1.0.0",
+  "description": "web crawler",
+  "main": "app.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/callistus406/web-crawler.git"
+  },
+  "author": "CALLISTUS",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/callistus406/web-crawler/issues"
+  },
+  "homepage": "https://github.com/callistus406/web-crawler#readme"
+}
